@@ -1781,6 +1781,34 @@ class TestUrlHelperFunctions:
         assert _get_extension_from_mimetype("text/plain") == ".txt"
         assert _get_extension_from_mimetype("application/json") == ".json"
 
+    def test_get_extension_from_mimetype_office_csv_and_common_types(self):
+        """Test _get_extension_from_mimetype for Office, CSV, archive and other common types."""
+        assert (
+            _get_extension_from_mimetype(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+            == ".xlsx"
+        )
+        assert (
+            _get_extension_from_mimetype(
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            )
+            == ".docx"
+        )
+        assert (
+            _get_extension_from_mimetype(
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            )
+            == ".pptx"
+        )
+        assert _get_extension_from_mimetype("application/vnd.ms-excel") == ".xls"
+        assert _get_extension_from_mimetype("application/msword") == ".doc"
+        assert _get_extension_from_mimetype("application/vnd.ms-powerpoint") == ".ppt"
+        assert _get_extension_from_mimetype("text/csv") == ".csv"
+        assert _get_extension_from_mimetype("video/quicktime") == ".mov"
+        assert _get_extension_from_mimetype("audio/ogg") == ".ogg"
+        assert _get_extension_from_mimetype("application/x-tar") == ".tar"
+
     def test_get_extension_from_mimetype_unknown_type(self):
         """Test _get_extension_from_mimetype returns empty for unknown types."""
         assert _get_extension_from_mimetype("application/unknown") == ""
@@ -1890,6 +1918,30 @@ class TestFetchFileFromUrl:
 
         assert filename.startswith("file_")
         assert filename.endswith(".pdf")
+
+    @patch("composio.core.models._files.safe_get")
+    def test_fetch_file_from_url_with_office_document_no_extension(self, mock_get):
+        """Test filename generation for extensionless URL returning xlsx content-type (issue #5105)."""
+        mock_response = MagicMock()
+        mock_response.ok = True
+        mock_response.status_code = 200
+        mock_response.headers = {
+            "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        }
+        mock_response.iter_content.return_value = [b"xlsx binary data"]
+        mock_response.close = MagicMock()
+        mock_get.return_value = mock_response
+
+        filename, content, mimetype = _fetch_file_from_url(
+            "https://docs.google.com/spreadsheets/d/abc123xyz/export?format=xlsx"
+        )
+
+        assert filename.startswith("file_")
+        assert filename.endswith(".xlsx")
+        assert (
+            mimetype
+            == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
     @patch("composio.core.models._files.safe_get")
     def test_fetch_file_from_url_failure(self, mock_get):

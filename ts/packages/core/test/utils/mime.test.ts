@@ -5,5 +5,11 @@ describe('getExtensionFromMimeType', () => {
   it('should return extension for known mimetype', () => {
     expect(getExtensionFromMimeType('image/png')).toBe('png');
     expect(getExtensionFromMimeType('application/pdf')).toBe('pdf');
+    expect(getExtensionFromMimeType('text/csv')).toBe('csv');
+    expect(
+      getExtensionFromMimeType(
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      )
+    ).toBe('xlsx');
   });
 });

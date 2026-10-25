@@ -300,31 +300,29 @@ def _is_url(value: str) -> bool:
         return False
 
 
+_REVERSE_MIME_TYPES: t.Dict[str, str] = {
+    mime.lower(): ext for ext, mime in mimetypes._types.items()
+}
+
+
 def _get_extension_from_mimetype(mimetype: str) -> str:
-    """Get file extension from mimetype."""
-    mime_to_ext = {
-        "image/jpeg": ".jpg",
-        "image/png": ".png",
-        "image/gif": ".gif",
-        "image/webp": ".webp",
-        "image/svg+xml": ".svg",
-        "image/bmp": ".bmp",
-        "image/tiff": ".tiff",
-        "application/pdf": ".pdf",
-        "application/json": ".json",
-        "application/xml": ".xml",
-        "text/plain": ".txt",
-        "text/html": ".html",
-        "text/css": ".css",
-        "text/javascript": ".js",
-        "application/zip": ".zip",
-        "application/gzip": ".gz",
-        "audio/mpeg": ".mp3",
-        "audio/wav": ".wav",
-        "video/mp4": ".mp4",
-        "video/webm": ".webm",
-    }
-    return mime_to_ext.get(mimetype.lower(), "")
+    """Get file extension from mimetype (with leading dot)."""
+    if not mimetype:
+        return ""
+    clean = mimetype.split(";")[0].strip().lower()
+    if clean == "application/octet-stream":
+        return ""
+    if clean in mimetypes._MIME_TO_EXT:
+        return f".{mimetypes._MIME_TO_EXT[clean]}"
+    ext = mimetypes.get_extension_from_mime_type(clean)
+    if not ext or ext == "bin":
+        return ""
+    dot_ext = f".{ext}"
+    if dot_ext in mimetypes._types:
+        return dot_ext
+    if clean in _REVERSE_MIME_TYPES:
+        return _REVERSE_MIME_TYPES[clean]
+    return ""
 
 
 def _generate_timestamped_filename(extension: str) -> str:

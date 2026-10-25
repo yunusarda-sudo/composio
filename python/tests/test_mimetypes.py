@@ -79,6 +79,11 @@ class TestGetExtensionFromMimeType:
             ("image/jpeg", "jpg"),
             ("video/mp4", "mp4"),
             ("application/vnd.ms-excel", "xls"),
+            ("text/csv", "csv"),
+            (
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "xlsx",
+            ),
         ],
     )
     def test_direct_mapping(self, mime_type: str, expected: str) -> None:
